@@ -1,13 +1,19 @@
 #!/bin/sh
 yum -y update
 yum -y install yum-utils
+package-cleanup --oldkernels --count=1
+
 yum -y install wget
 yum -y install vim
 yum -y install epel-release 
 yum -y install dkms
 yum -y install kernel-devel-3.10.0-327.el7.x86_64 
 yum -y install apt-transport-https ca-certificates
- 
+yum -y install firefox
+
+yum -y install samba
+yum -y install nginx
+
 systemctl set-default graphical.target
 
 #setup devtoolset for SP develop - currently not avail on centos7 and source code has dependancies on it.
@@ -38,3 +44,26 @@ yum install -y nodejs
 usermod -aG docker vagrant
 #echo 'DOCKER_OPTS="-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"' >> /etc/default/docker
 #service docker restart
+
+sudo rpm -ivh http://pulp.tecnotree.com/pulp/repos/ccs_upstream/ccs-repoconf-1-0.noarch.rpm
+
+#ACE Micro
+cat << EOF > /etc/yum.repos.d/pulp-ace-micro-mirror.repo
+[pulp-mirror-devel_libraries_ACE_micro]
+name=Mirrored ACE micro release (CentOS_CentOS-6)
+baseurl=http://pulp.tecnotree.com/pulp/repos/ACE-micro/
+enabled=1
+gpgcheck=0
+EOF
+
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+#Need to let the world access through port 9000.
+firewall-cmd --zone=public --add-port=9000/tcp --permanent
+firewall-cmd --reload
+
+cd /home/vagrant/Desktop
+wget https://download.jetbrains.com/webstorm/WebStorm-11.0.3.tar.gz
+tar xvfz WebStorm-11.0.3.tar.gz
+cd WebStorm-1*/bin
+./webstorm.sh
